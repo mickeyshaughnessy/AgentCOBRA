@@ -1,299 +1,229 @@
-# Location Obfuscation System
-# Generate false location data for privacy protection based on customer preferences
+# COBRA Personal Devices - Digital Signature Generator
+# Generates diverse digital signatures for privacy protection
 
 import random
 import hashlib
-import math
+import json
 from datetime import datetime, timedelta
-from typing import Dict, List, Tuple
+from typing import Dict, List
 from customer_loader import CustomerDataLoader
 
-class LocationObfuscator:
-    """Generate false location data for privacy protection using customer preferences"""
+class COBRADevice:
+    """Conceptual device for generating diverse digital signatures based on customer preferences"""
     
     def __init__(self, customer_loader: CustomerDataLoader = None):
         self.customer_loader = customer_loader or CustomerDataLoader()
         
-        # Major city coordinates for realistic false locations
-        self.city_coordinates = {
-            'New York': (40.7128, -74.0060),
-            'Los Angeles': (34.0522, -118.2437),
-            'Chicago': (41.8781, -87.6298),
-            'Houston': (29.7604, -95.3698),
-            'Phoenix': (33.4484, -112.0740),
-            'Philadelphia': (39.9526, -75.1652),
-            'San Antonio': (29.4241, -98.4936),
-            'San Diego': (32.7157, -117.1611),
-            'Dallas': (32.7767, -96.7970),
-            'San Jose': (37.3382, -121.8863),
-            'Austin': (30.2672, -97.7431),
-            'Jacksonville': (30.3322, -81.6557),
-            'San Francisco': (37.7749, -122.4194),
-            'Columbus': (39.9612, -82.9988),
-            'Charlotte': (35.2271, -80.8431),
-            'Fort Worth': (32.7555, -97.3308),
-            'Detroit': (42.3314, -83.0458),
-            'El Paso': (31.7619, -106.4850),
-            'Memphis': (35.1495, -90.0490),
-            'Seattle': (47.6062, -122.3321),
-            'Denver': (39.7392, -104.9903),
-            'Washington DC': (38.9072, -77.0369),
-            'Boston': (42.3601, -71.0589),
-            'Nashville': (36.1627, -86.7816),
-            'Baltimore': (39.2904, -76.6122),
-            'Oklahoma City': (35.4676, -97.5164),
-            'Louisville': (38.2527, -85.7585),
-            'Portland': (45.5152, -122.6784),
-            'Las Vegas': (36.1699, -115.1398),
-            'Milwaukee': (43.0389, -87.9065),
-            'Albuquerque': (35.0844, -106.6504),
-            'Tucson': (32.2226, -110.9747),
-            'Fresno': (36.7378, -119.7871),
-            'Sacramento': (38.5816, -121.4944),
-            'Mesa': (33.4152, -111.8315),
-            'Kansas City': (39.0997, -94.5786),
-            'Atlanta': (33.7490, -84.3880),
-            'Miami': (25.7617, -80.1918)
+        # Base data streams available
+        self.data_streams = [
+            'accelerometer', 'gyroscope', 'magnetometer', 'temperature',
+            'humidity', 'pressure', 'light_sensor', 'proximity', 'wifi_scan',
+            'bluetooth_scan', 'cellular_signal', 'battery_level', 'cpu_usage',
+            'memory_usage', 'network_latency', 'gps_accuracy', 'microphone_ambient',
+            'camera_exposure', 'touch_pressure', 'vibration_pattern'
+        ]
+        
+        # Device-specific streams
+        self.device_streams = {
+            'smartphone': ['accelerometer', 'gyroscope', 'wifi_scan', 'bluetooth_scan', 
+                          'cellular_signal', 'battery_level', 'gps_accuracy', 'microphone_ambient'],
+            'laptop': ['temperature', 'cpu_usage', 'memory_usage', 'network_latency', 
+                      'wifi_scan', 'battery_level', 'camera_exposure'],
+            'tablet': ['accelerometer', 'gyroscope', 'touch_pressure', 'light_sensor', 
+                      'wifi_scan', 'battery_level', 'gps_accuracy'],
+            'smartwatch': ['accelerometer', 'gyroscope', 'heart_rate', 'skin_temperature', 
+                          'step_count', 'vibration_pattern', 'ambient_light']
         }
     
-    def get_customer_cities(self, customer_id: str) -> List[Tuple[float, float]]:
-        """Get coordinate list for customer's preferred cities"""
-        customer_prefs = self.customer_loader.get_customer_preferences(customer_id)
-        preferred_cities = customer_prefs.get('preferred_cities', ['New York', 'Los Angeles'])
-        
-        coordinates = []
-        for city in preferred_cities:
-            if city in self.city_coordinates:
-                coordinates.append(self.city_coordinates[city])
-            else:
-                # If city not found, use a random major city
-                coordinates.append(random.choice(list(self.city_coordinates.values())))
-        
-        return coordinates
+    def get_device_streams(self, device_types: List[str]) -> List[str]:
+        """Get available data streams for customer's devices"""
+        available_streams = set()
+        for device_type in device_types:
+            if device_type in self.device_streams:
+                available_streams.update(self.device_streams[device_type])
+        return list(available_streams)
     
-    def calculate_obfuscation_radius(self, privacy_level: str) -> float:
-        """Calculate obfuscation radius based on privacy level"""
-        radius_mapping = {
-            'low': 0.01,      # ~1km
-            'medium': 0.05,   # ~5km
-            'high': 0.1,      # ~10km
-            'maximum': 0.2    # ~20km
-        }
-        return radius_mapping.get(privacy_level, 0.05)
+    def generate_sensor_value(self, stream_name: str) -> float:
+        """Generate realistic sensor values based on stream type"""
+        if 'accel' in stream_name or 'gyro' in stream_name:
+            return random.uniform(-10.0, 10.0)
+        elif 'temp' in stream_name:
+            return random.uniform(15.0, 35.0)
+        elif 'pressure' in stream_name:
+            return random.uniform(950.0, 1050.0)
+        elif 'battery' in stream_name:
+            return random.uniform(20.0, 100.0)
+        elif 'heart_rate' in stream_name:
+            return random.uniform(60.0, 100.0)
+        elif 'step_count' in stream_name:
+            return random.randint(0, 10000)
+        elif 'usage' in stream_name:
+            return random.uniform(0.0, 100.0)
+        elif 'latency' in stream_name:
+            return random.uniform(1.0, 500.0)
+        else:
+            return random.uniform(0.0, 100.0)
     
-    def generate_false_gps_for_customer(self, customer_id: str) -> Dict:
-        """Generate realistic but false GPS coordinates for specific customer"""
+    def generate_false_signatures_for_customer(self, customer_id: str) -> Dict:
+        """Generate false digital signatures customized for specific customer"""
         customer_prefs = self.customer_loader.get_customer_preferences(customer_id)
         
-        if not customer_prefs.get('location_obfuscation', True):
-            return {'message': 'Location obfuscation disabled for this customer'}
+        if not customer_prefs:
+            print(f"Customer {customer_id} not found, using default settings")
+            return self.generate_false_signatures(25)
         
-        customer_cities = self.get_customer_cities(customer_id)
-        base_lat, base_lng = random.choice(customer_cities)
+        # Get streams based on customer's devices
+        available_streams = self.get_device_streams(customer_prefs['device_types'])
         
-        # Get obfuscation radius based on privacy level
-        privacy_level = customer_prefs.get('privacy_level', 'medium')
-        max_offset = self.calculate_obfuscation_radius(privacy_level)
-        
-        # Add random offset within specified radius
-        lat_offset = random.uniform(-max_offset, max_offset)
-        lng_offset = random.uniform(-max_offset, max_offset)
-        
-        # Generate realistic accuracy based on privacy level
-        accuracy_ranges = {
-            'low': (3.0, 10.0),
-            'medium': (5.0, 30.0),
-            'high': (10.0, 50.0),
-            'maximum': (20.0, 100.0)
+        # Determine number of streams based on privacy level
+        privacy_multipliers = {
+            'low': 0.5,
+            'medium': 1.0,
+            'high': 1.5,
+            'maximum': 2.0
         }
-        min_acc, max_acc = accuracy_ranges.get(privacy_level, (5.0, 30.0))
+        
+        base_streams = len(available_streams)
+        multiplier = privacy_multipliers.get(customer_prefs['privacy_level'], 1.0)
+        num_streams = int(base_streams * multiplier)
+        
+        return self.generate_false_signatures(num_streams, available_streams, customer_id)
+    
+    def generate_false_signatures(self, num_streams: int = 50, 
+                                available_streams: List[str] = None,
+                                customer_id: str = None) -> Dict:
+        """Generate false digital signatures across multiple data streams"""
+        if available_streams is None:
+            available_streams = self.data_streams
+        
+        signatures = {}
+        signature_metadata = {
+            'customer_id': customer_id,
+            'generation_time': datetime.now().isoformat(),
+            'total_signatures': num_streams,
+            'device_coverage': len(available_streams)
+        }
+        
+        for i in range(num_streams):
+            stream_name = random.choice(available_streams)
+            value = self.generate_sensor_value(stream_name)
+            
+            # Add temporal variation
+            time_offset = random.randint(-300, 300)  # ±5 minutes
+            timestamp = datetime.now() + timedelta(seconds=time_offset)
+            
+            signature_key = f"{stream_name}_{i}_{int(timestamp.timestamp())}"
+            signatures[signature_key] = {
+                'stream_type': stream_name,
+                'value': value,
+                'timestamp': timestamp.isoformat(),
+                'checksum': hashlib.md5(str(value).encode()).hexdigest()[:8],
+                'variance_factor': random.uniform(0.8, 1.2),
+                'confidence_score': random.uniform(0.7, 1.0)
+            }
         
         return {
-            'customer_id': customer_id,
-            'latitude': base_lat + lat_offset,
-            'longitude': base_lng + lng_offset,
-            'accuracy': random.uniform(min_acc, max_acc),
-            'altitude': random.uniform(0.0, 100.0),
-            'speed': random.uniform(0.0, 30.0),  # m/s
-            'bearing': random.uniform(0.0, 360.0),
-            'timestamp': datetime.now().isoformat(),
-            'privacy_level': privacy_level,
-            'obfuscation_radius_km': max_offset * 111  # Convert degrees to km (rough)
+            'signatures': signatures,
+            'metadata': signature_metadata
         }
     
-    def generate_location_trail(self, customer_id: str, duration_hours: int = 24, 
-                              points_per_hour: int = 4) -> List[Dict]:
-        """Generate a trail of false location points over time"""
+    def generate_device_fingerprint(self, customer_id: str) -> Dict:
+        """Generate a unique device fingerprint for the customer"""
         customer_prefs = self.customer_loader.get_customer_preferences(customer_id)
         
-        if not customer_prefs.get('location_obfuscation', True):
-            return [{'message': 'Location obfuscation disabled for this customer'}]
+        fingerprint_data = {
+            'customer_id': customer_id,
+            'device_types': customer_prefs.get('device_types', ['smartphone']),
+            'os_variants': [f"OS_{random.randint(10, 15)}.{random.randint(0, 9)}" 
+                           for _ in customer_prefs.get('device_types', ['smartphone'])],
+            'hardware_signatures': {},
+            'network_characteristics': {},
+            'generation_timestamp': datetime.now().isoformat()
+        }
         
-        trail_points = []
-        customer_cities = self.get_customer_cities(customer_id)
+        # Generate hardware signatures for each device
+        for device_type in customer_prefs.get('device_types', ['smartphone']):
+            fingerprint_data['hardware_signatures'][device_type] = {
+                'cpu_model': f"Processor_{random.randint(1000, 9999)}",
+                'memory_size': random.choice([4, 8, 16, 32]),
+                'storage_size': random.choice([64, 128, 256, 512, 1024]),
+                'screen_resolution': random.choice(['1920x1080', '2560x1440', '3840x2160']),
+                'device_id_hash': hashlib.sha256(f"{customer_id}_{device_type}".encode()).hexdigest()[:16]
+            }
+        
+        # Generate network characteristics
+        fingerprint_data['network_characteristics'] = {
+            'ip_range_pattern': f"192.168.{random.randint(1, 255)}.xxx",
+            'dns_servers': [f"8.8.{random.randint(1, 9)}.{random.randint(1, 9)}" for _ in range(2)],
+            'connection_types': random.sample(['wifi', 'cellular', 'ethernet'], k=random.randint(1, 3)),
+            'bandwidth_profile': {
+                'download_mbps': random.uniform(10.0, 1000.0),
+                'upload_mbps': random.uniform(5.0, 100.0),
+                'latency_ms': random.uniform(1.0, 50.0)
+            }
+        }
+        
+        return fingerprint_data
+    
+    def create_noise_signatures(self, duration_minutes: int = 30, customer_id: str = None) -> List[Dict]:
+        """Create noise signatures to mask real device activity"""
+        noise_signatures = []
+        customer_prefs = self.customer_loader.get_customer_preferences(customer_id) if customer_id else {}
+        
+        # Generate noise based on privacy level
         privacy_level = customer_prefs.get('privacy_level', 'medium')
-        max_offset = self.calculate_obfuscation_radius(privacy_level)
+        noise_multipliers = {'low': 0.5, 'medium': 1.0, 'high': 2.0, 'maximum': 3.0}
+        noise_factor = noise_multipliers.get(privacy_level, 1.0)
         
-        # Start from a random preferred city
-        current_lat, current_lng = random.choice(customer_cities)
+        signatures_per_minute = int(10 * noise_factor)  # Base 10 signatures per minute
         
-        total_points = duration_hours * points_per_hour
+        for minute in range(duration_minutes):
+            for sig in range(signatures_per_minute):
+                timestamp = datetime.now() + timedelta(minutes=minute, seconds=sig*6)
+                
+                noise_signature = {
+                    'signature_id': f"NOISE_{random.randint(100000, 999999)}",
+                    'timestamp': timestamp.isoformat(),
+                    'stream_type': random.choice(self.data_streams),
+                    'noise_value': random.uniform(-100.0, 100.0),
+                    'noise_pattern': random.choice(['gaussian', 'uniform', 'spike', 'drift']),
+                    'amplitude': random.uniform(0.1, 2.0),
+                    'frequency_hz': random.uniform(0.1, 10.0)
+                }
+                noise_signatures.append(noise_signature)
         
-        for point_idx in range(total_points):
-            # Calculate timestamp
-            time_offset = timedelta(hours=point_idx / points_per_hour)
-            timestamp = datetime.now() + time_offset
-            
-            # Add some movement simulation (random walk with bias toward staying near cities)
-            if random.random() < 0.1:  # 10% chance to "teleport" to another preferred city
-                current_lat, current_lng = random.choice(customer_cities)
-            else:
-                # Small movement
-                lat_movement = random.uniform(-max_offset/10, max_offset/10)
-                lng_movement = random.uniform(-max_offset/10, max_offset/10)
-                current_lat += lat_movement
-                current_lng += lng_movement
-            
-            # Add noise
-            lat_noise = random.uniform(-max_offset/20, max_offset/20)
-            lng_noise = random.uniform(-max_offset/20, max_offset/20)
-            
-            trail_point = {
-                'point_id': f"{customer_id}_LOC_{point_idx:04d}",
-                'latitude': current_lat + lat_noise,
-                'longitude': current_lng + lng_noise,
-                'accuracy': random.uniform(5.0, 50.0),
-                'timestamp': timestamp.isoformat(),
-                'speed': random.uniform(0.0, 25.0),
-                'bearing': random.uniform(0.0, 360.0)
-            }
-            trail_points.append(trail_point)
-        
-        return trail_points
-    
-    def generate_false_wifi_signatures(self, customer_id: str, count: int = None) -> List[Dict]:
-        """Generate false WiFi network signatures based on customer location preferences"""
-        customer_prefs = self.customer_loader.get_customer_preferences(customer_id)
-        
-        if count is None:
-            # Determine count based on privacy level
-            count_mapping = {
-                'low': 5,
-                'medium': 10,
-                'high': 20,
-                'maximum': 30
-            }
-            count = count_mapping.get(customer_prefs.get('privacy_level', 'medium'), 10)
-        
-        wifi_networks = []
-        
-        # Generate network names based on customer's preferred cities
-        preferred_cities = customer_prefs.get('preferred_cities', ['New York'])
-        
-        for i in range(count):
-            # Generate realistic MAC address
-            mac_address = ':'.join([f"{random.randint(0, 255):02x}" for _ in range(6)])
-            
-            # Generate SSID based on location context
-            city_context = random.choice(preferred_cities)
-            ssid_patterns = [
-                f"{city_context}_WiFi_{random.randint(1000, 9999)}",
-                f"Network_{random.randint(1000, 9999)}",
-                f"Guest_{random.randint(100, 999)}",
-                f"Secure_{random.randint(1000, 9999)}",
-                f"{city_context}Public",
-                f"Business_{random.randint(100, 999)}"
-            ]
-            
-            wifi_network = {
-                'bssid': mac_address,
-                'ssid': random.choice(ssid_patterns),
-                'signal_strength': random.randint(-80, -30),
-                'frequency': random.choice([2.4, 5.0, 6.0]),
-                'security': random.choice(['WPA2', 'WPA3', 'Open', 'WEP']),
-                'channel': random.randint(1, 165),
-                'vendor': random.choice(['Cisco', 'Netgear', 'Linksys', 'TP-Link', 'Unknown']),
-                'first_seen': datetime.now().isoformat(),
-                'location_context': city_context
-            }
-            wifi_networks.append(wifi_network)
-        
-        return wifi_networks
-    
-    def generate_cellular_tower_data(self, customer_id: str) -> List[Dict]:
-        """Generate false cellular tower connection data"""
-        customer_prefs = self.customer_loader.get_customer_preferences(customer_id)
-        customer_cities = self.get_customer_cities(customer_id)
-        
-        tower_count = {
-            'low': 3,
-            'medium': 5,
-            'high': 8,
-            'maximum': 12
-        }.get(customer_prefs.get('privacy_level', 'medium'), 5)
-        
-        cellular_towers = []
-        
-        for i in range(tower_count):
-            # Place towers near customer's preferred cities
-            base_lat, base_lng = random.choice(customer_cities)
-            tower_lat = base_lat + random.uniform(-0.1, 0.1)
-            tower_lng = base_lng + random.uniform(-0.1, 0.1)
-            
-            tower = {
-                'tower_id': f"CELL_{random.randint(10000, 99999)}",
-                'mcc': random.choice([310, 311, 312]),  # US mobile country codes
-                'mnc': random.randint(1, 999),
-                'lac': random.randint(1000, 9999),
-                'cell_id': random.randint(100000, 999999),
-                'latitude': tower_lat,
-                'longitude': tower_lng,
-                'signal_strength': random.randint(-110, -50),
-                'technology': random.choice(['LTE', '5G', 'UMTS', 'GSM']),
-                'frequency_band': random.choice(['700MHz', '850MHz', '1900MHz', '2100MHz']),
-                'distance_estimate': random.uniform(0.1, 10.0),  # km
-                'timestamp': datetime.now().isoformat()
-            }
-            cellular_towers.append(tower)
-        
-        return cellular_towers
+        return noise_signatures
 
 # Example usage and testing
-def demo_location_obfuscation():
-    """Demonstrate the location obfuscation system with customer data"""
-    print("=== Location Obfuscation System Demo ===")
+def demo_cobra_system():
+    """Demonstrate the COBRA device system with customer data"""
+    print("=== COBRA Device System Demo ===")
     
     # Initialize system
-    obfuscator = LocationObfuscator()
+    cobra = COBRADevice()
     
     # Test with specific customers
-    customers_to_test = ["CUST_001", "CUST_002", "CUST_004"]
+    customers_to_test = ["CUST_001", "CUST_003", "CUST_005"]
     
     for customer_id in customers_to_test:
         print(f"\n--- Customer {customer_id} ---")
         
-        # Generate false GPS
-        false_gps = obfuscator.generate_false_gps_for_customer(customer_id)
-        if 'latitude' in false_gps:
-            print(f"False GPS: {false_gps['latitude']:.4f}, {false_gps['longitude']:.4f}")
-            print(f"Privacy level: {false_gps['privacy_level']}")
-            print(f"Obfuscation radius: {false_gps['obfuscation_radius_km']:.1f} km")
-        else:
-            print(f"GPS: {false_gps['message']}")
+        # Generate signatures for customer
+        sig_data = cobra.generate_false_signatures_for_customer(customer_id)
+        signatures = sig_data['signatures']
+        metadata = sig_data['metadata']
         
-        # Generate location trail
-        trail = obfuscator.generate_location_trail(customer_id, duration_hours=6, points_per_hour=2)
-        if isinstance(trail, list) and len(trail) > 0 and 'latitude' in trail[0]:
-            print(f"Generated location trail with {len(trail)} points")
-            print(f"Trail span: {trail[0]['timestamp']} to {trail[-1]['timestamp']}")
+        print(f"Generated {len(signatures)} signatures")
+        print(f"Device coverage: {metadata['device_coverage']} streams")
+        print(f"Sample signatures: {list(signatures.keys())[:3]}")
         
-        # Generate WiFi signatures
-        wifi_sigs = obfuscator.generate_false_wifi_signatures(customer_id)
-        print(f"Generated {len(wifi_sigs)} WiFi signatures")
+        # Generate device fingerprint
+        fingerprint = cobra.generate_device_fingerprint(customer_id)
+        print(f"Device types: {fingerprint['device_types']}")
         
-        # Generate cellular tower data
-        cellular_data = obfuscator.generate_cellular_tower_data(customer_id)
-        print(f"Generated {len(cellular_data)} cellular tower connections")
+        # Generate noise signatures
+        noise_sigs = cobra.create_noise_signatures(duration_minutes=5, customer_id=customer_id)
+        print(f"Generated {len(noise_sigs)} noise signatures")
 
 if __name__ == "__main__":
-    demo_location_obfuscation()
+    demo_cobra_system()
